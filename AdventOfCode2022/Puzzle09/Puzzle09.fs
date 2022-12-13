@@ -96,38 +96,53 @@ let PartOne () =
     |> fun state -> List.length state.tailPositions
     |> printfn "%A"
 
-type MultiRope = (int * int) list
+type Point = int * int
+
+type Knot = { position: Point; visits: Point list }
+
+type MultiRope = Knot list
 
 let rec moveMultiRope (rope: MultiRope) (move: Move) : MultiRope =
     let updateKnots (direction: Direction) (rope: MultiRope) : MultiRope =
-        let moveKnot (precedingKnot: (int * int) Option) (knot: int * int) : (int * int) * (int * int) Option =
-            let move (offsetX: int) (offsetY: int) ((x, y): int * int) : (int * int) * (int * int) Option =
-                let resultingKnot = x + offsetX, y + offsetY
-                resultingKnot, Some resultingKnot
+        let moveKnot (precedingKnot: Point option) (knot: Knot) : Knot * Point option =
+            let move (offsetX: int) (offsetY: int) (knot: Knot) : Knot * Point option =
+                let movedKnot x y v =
+                    let position = x + offsetX, y + offsetY
+                    let visits = if v |> List.contains position then v else position :: v
 
-            let moveHead (knot: int * int) : (int * int) * (int * int) Option =
+                    { knot with
+                        position = position
+                        visits = visits },
+                    Some position
+
+                match knot with
+                | { position = x, y; visits = visits } -> movedKnot x y visits
+
+            let moveHead (knot: Knot) : Knot * Point option =
                 match direction with
                 | Up -> knot |> move 0 1
                 | Right -> knot |> move 1 0
                 | Down -> knot |> move 0 -1
                 | Left -> knot |> move -1 0
 
-            let absI (value: int) : int * int =
-                match value with
-                | v when v < 0 -> -1 * v, -1
-                | v when v >= 0 -> v, 1
-                | _ -> failwith "Invalid value!"
+            let moveTail (head: Point) (tail: Knot) : Knot * Point option =
+                let signedAbsolute (value: int) : int * int =
+                    match value with
+                    | v when v < 0 -> -1 * v, -1
+                    | v when v >= 0 -> v, 1
+                    | _ -> failwith "Invalid value!"
 
-            let moveTail ((xHead, yHead): int * int) ((xTail, yTail): int * int) : (int * int) * (int * int) Option =
-                let dx = xHead - xTail |> absI
-                let dy = yHead - yTail |> absI
+                let differences =
+                    match head, tail with
+                    | (xHead, yHead), { position = (xTail, yTail) } ->
+                        (xHead - xTail |> signedAbsolute), (yHead - yTail |> signedAbsolute)
 
-                match dx, dy with
-                | (x, offsetX), (y, offsetY) when x > 1 && y > 0 -> (xTail, yTail) |> move offsetX offsetY
-                | (x, offsetX), (y, offsetY) when x > 0 && y > 1 -> (xTail, yTail) |> move offsetX offsetY
-                | (x, offsetX), _ when x > 1 -> (xTail, yTail) |> move offsetX 0
-                | _, (y, offsetY) when y > 1 -> (xTail, yTail) |> move 0 offsetY
-                | _ -> (xTail, yTail), Some(xTail, yTail)
+                match differences with
+                | (x, offsetX), (y, offsetY) when x > 1 && y > 0 -> tail |> move offsetX offsetY
+                | (x, offsetX), (y, offsetY) when x > 0 && y > 1 -> tail |> move offsetX offsetY
+                | (x, offsetX), _ when x > 1 -> tail |> move offsetX 0
+                | _, (y, offsetY) when y > 1 -> tail |> move 0 offsetY
+                | _ -> tail, Some tail.position
 
             match precedingKnot, knot with
             | None, _ -> knot |> moveHead
@@ -142,7 +157,8 @@ let rec moveMultiRope (rope: MultiRope) (move: Move) : MultiRope =
 
 [<Test>]
 let PartTwo () =
-    Path.Combine("Puzzle09", "debug.txt")
+    Path.Combine("Puzzle09", "input.txt")
     |> lines inMoves
-    |> Seq.fold moveMultiRope (List.init 10 (fun _ -> 0, 0))
+    |> Seq.fold moveMultiRope (List.init 10 (fun _ -> { position = 0, 0; visits = [ 0, 0 ] }))
+    |> fun rope -> rope |> List.last |> (fun knot -> knot.visits.Length)
     |> printfn "%A"
