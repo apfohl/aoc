@@ -22,9 +22,9 @@ let toDirection (value: string) =
 
 let inMoves (line: string) =
     match line.Split [| ' ' |] with
-    | [| direction; amount |] ->
-        { direction = toDirection direction
-          amount = int amount }
+    | [| first; second |] ->
+        { direction = toDirection first
+          amount = int second }
     | line -> failwith $"Line could no be parsed: '{line}'"
 
 type Rope = { head: int * int; tail: int * int }
@@ -92,6 +92,57 @@ let PartOne () =
     |> Seq.fold
         moveRope
         { rope = { head = 0, 0; tail = 0, 0 }
-          tailPositions = [(0,0)] }
+          tailPositions = [ (0, 0) ] }
     |> fun state -> List.length state.tailPositions
+    |> printfn "%A"
+
+type MultiRope = (int * int) list
+
+let rec moveMultiRope (rope: MultiRope) (move: Move) : MultiRope =
+    let updateKnots (direction: Direction) (rope: MultiRope) : MultiRope =
+        let moveKnot (precedingKnot: (int * int) Option) (knot: int * int) : (int * int) * (int * int) Option =
+            let move (offsetX: int) (offsetY: int) ((x, y): int * int) : (int * int) * (int * int) Option =
+                let resultingKnot = x + offsetX, y + offsetY
+                resultingKnot, Some resultingKnot
+
+            let moveHead (knot: int * int) : (int * int) * (int * int) Option =
+                match direction with
+                | Up -> knot |> move 0 1
+                | Right -> knot |> move 1 0
+                | Down -> knot |> move 0 -1
+                | Left -> knot |> move -1 0
+
+            let absI (value: int) : int * int =
+                match value with
+                | v when v < 0 -> -1 * v, -1
+                | v when v >= 0 -> v, 1
+                | _ -> failwith "Invalid value!"
+
+            let moveTail ((xHead, yHead): int * int) ((xTail, yTail): int * int) : (int * int) * (int * int) Option =
+                let dx = xHead - xTail |> absI
+                let dy = yHead - yTail |> absI
+
+                match dx, dy with
+                | (x, offsetX), (y, offsetY) when x > 1 && y > 0 -> (xTail, yTail) |> move offsetX offsetY
+                | (x, offsetX), (y, offsetY) when x > 0 && y > 1 -> (xTail, yTail) |> move offsetX offsetY
+                | (x, offsetX), _ when x > 1 -> (xTail, yTail) |> move offsetX 0
+                | _, (y, offsetY) when y > 1 -> (xTail, yTail) |> move 0 offsetY
+                | _ -> (xTail, yTail), Some(xTail, yTail)
+
+            match precedingKnot, knot with
+            | None, _ -> knot |> moveHead
+            | Some head, tail -> moveTail head tail
+
+        match rope |> List.mapFold moveKnot None with
+        | r, _ -> r
+
+    match move.direction, move.amount with
+    | _, 0 -> rope
+    | direction, _ -> moveMultiRope (rope |> updateKnots direction) { move with amount = move.amount - 1 }
+
+[<Test>]
+let PartTwo () =
+    Path.Combine("Puzzle09", "debug.txt")
+    |> lines inMoves
+    |> Seq.fold moveMultiRope (List.init 10 (fun _ -> 0, 0))
     |> printfn "%A"
