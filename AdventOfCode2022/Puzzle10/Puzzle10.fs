@@ -21,6 +21,7 @@ type Cpu =
 
 let rec cycle (cpu: Cpu) (apply: int -> int) (count: int) : Cpu =
     let currentCycle = cpu.cycles + 1
+
     let signals =
         if currentCycle = 20 || (currentCycle - 20) % 40 = 0 then
             (cpu.register * currentCycle) :: cpu.signals
@@ -56,4 +57,15 @@ let PartOne () =
     |> lines toInstruction
     |> runProgram
     |> fun cpu -> cpu.signals |> List.sum
+    |> printfn "%A"
+
+type Image = char list list
+
+let draw (instructions: Instruction seq) : Image = []
+
+[<Test>]
+let PartTwo () =
+    Path.Combine("Puzzle10", "input.txt")
+    |> lines toInstruction
+    |> draw
     |> printfn "%A"
