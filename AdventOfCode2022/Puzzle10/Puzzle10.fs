@@ -59,13 +59,55 @@ let PartOne () =
     |> fun cpu -> cpu.signals |> List.sum
     |> printfn "%A"
 
-type Image = char list list
+type Buffer = char list list
 
-let draw (instructions: Instruction seq) : Image = []
+type Screen =
+    { buffer: Buffer
+      sprite: int
+      cycles: int }
+
+let rec drawCycle (screen: Screen) (apply: int -> int) (count: int) : Screen =
+    let isWithinSprite pixel =
+        pixel >= screen.sprite - 1 && pixel <= screen.sprite + 1
+
+    let draw pixel =
+        if pixel |> isWithinSprite then '#' else '.'
+
+    let currentCycle = screen.cycles + 1
+
+    let changedBuffer: Buffer =
+        match screen.buffer, screen.cycles % 40 with
+        | [], _ -> [ [ draw 0 ] ]
+        | rows, 0 -> [ draw 0 ] :: rows
+        | row :: rows, pixel -> (draw pixel :: row) :: rows
+
+    match count with
+    | 0 -> { screen with sprite = screen.sprite |> apply }
+    | c ->
+        drawCycle
+            { screen with
+                cycles = currentCycle
+                buffer = changedBuffer }
+            apply
+            (c - 1)
+
+let draw (screen: Screen) (instruction: Instruction) : Screen =
+    match instruction with
+    | NOOP -> drawCycle screen id 1
+    | ADDX i -> drawCycle screen (fun r -> r + i) 2
+
+let render (instructions: Instruction seq) : Screen =
+    instructions |> Seq.fold draw { buffer = []; sprite = 1; cycles = 0 }
+
+let printScreen (screen: Screen) =
+    screen.buffer
+    |> List.map (fun row -> row |> List.rev |> List.map string |> List.reduce (+))
+    |> List.rev
+    |> List.iter (printfn "%s")
 
 [<Test>]
 let PartTwo () =
     Path.Combine("Puzzle10", "input.txt")
     |> lines toInstruction
-    |> draw
-    |> printfn "%A"
+    |> render
+    |> printScreen
