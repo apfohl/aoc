@@ -4,9 +4,9 @@ open System.IO
 open NUnit.Framework
 
 type Monkey =
-    { items: int list
-      operation: int -> int
-      test: int -> int
+    { items: int64 list
+      operation: int64 -> int64
+      test: int64 -> int
       count: int }
 
 let parse lines : Map<int, Monkey> =
@@ -16,7 +16,7 @@ let parse lines : Map<int, Monkey> =
         let items =
             lines[1]
             |> splitOn ':'
-            |> (fun m -> m[1] |> splitOn ',' |> Array.map int |> List.ofArray)
+            |> (fun m -> m[1] |> splitOn ',' |> Array.map int64 |> List.ofArray)
 
         let operation =
             let op =
@@ -29,17 +29,18 @@ let parse lines : Map<int, Monkey> =
             |> parseRegex "(\W)\s(\w+)$"
             |> fun matches ->
                 match matches[0], matches[1] with
-                | operator, value when value[0] |> isDigit -> (op operator) (int value)
+                | operator, value when value[0] |> isDigit -> (op operator) (int64 value)
                 | operator, _ -> fun old -> (op operator) old old
 
         let test =
-            let toInt (matches: string array) = int matches[0]
-            let divisible = lines[3] |> parseRegex "(\d+)" |> toInt
-            let targetTrue = lines[4] |> parseRegex "(\d+)" |> toInt
-            let targetFalse = lines[5] |> parseRegex "(\d+)" |> toInt
+            let int (matches: string array) = int matches[0]
+            let int64 (matches: string array) = int64 matches[0]
+            let divisible = lines[3] |> parseRegex "(\d+)" |> int64
+            let targetTrue = lines[4] |> parseRegex "(\d+)" |> int
+            let targetFalse = lines[5] |> parseRegex "(\d+)" |> int
 
             function
-            | value when value % divisible = 0 -> targetTrue
+            | value when value % divisible = 0L -> targetTrue
             | _ -> targetFalse
 
         number,
@@ -60,7 +61,7 @@ let clear key monkeys =
         monkeys
 
 let receive monkeys key item =
-    change key (fun monkey -> { monkey with items = item :: monkey.items }) monkeys
+    change key (fun monkey -> { monkey with items = monkey.items @ [item] }) monkeys
 
 let monkey (monkeys: Map<int, Monkey>) key =
     let { items = items
@@ -68,11 +69,13 @@ let monkey (monkeys: Map<int, Monkey>) key =
           test = test } =
         monkeys[key]
 
-    let divide divisor (x: int) = int (int64 x / divisor)
+    let divideBy divisor x = x / divisor
 
-    let target = operation >> divide 3L >> test
+    let changeWorryLevel = operation >> divideBy 3L
+    let target = changeWorryLevel >> test
 
-    let throwItem (monkeys: Map<int, Monkey>) (item: int) : Map<int, Monkey> = receive monkeys (target item) item
+    let throwItem monkeys item =
+        receive monkeys (target item) (changeWorryLevel item)
 
     items |> List.fold throwItem monkeys |> clear key
 
