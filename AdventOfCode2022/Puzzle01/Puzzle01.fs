@@ -2,7 +2,6 @@ module AdventOfCode2022.Puzzle01.Puzzle01
 
 open System.IO
 open NUnit.Framework
-open AdventOfCode2022.Helpers
 
 let groupCalories state item =
     match item with

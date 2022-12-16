@@ -1,7 +1,6 @@
 module AdventOfCode2022.Puzzle09.Puzzle09
 
 open System.IO
-open AdventOfCode2022.Helpers
 open NUnit.Framework
 
 type Direction =

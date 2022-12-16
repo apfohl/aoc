@@ -2,7 +2,6 @@ module AdventOfCode2022.Puzzle03.Puzzle03
 
 open System.IO
 open NUnit.Framework
-open AdventOfCode2022.Helpers
 
 let mapCompartments (rucksack: string) =
     let compartmentLength = rucksack.Length / 2

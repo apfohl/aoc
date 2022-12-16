@@ -2,7 +2,6 @@ module AdventOfCode2022.Puzzle02.Puzzle02
 
 open System.IO
 open NUnit.Framework
-open AdventOfCode2022.Helpers
 
 let mapRound (round: string) =
     match (round.Split([| ' ' |]) |> List.ofArray) with
@@ -11,7 +10,7 @@ let mapRound (round: string) =
 
 let scoreOne state item =
     match item with
-    | "A", "X" -> state + 1 + 3 // rock rock 
+    | "A", "X" -> state + 1 + 3 // rock rock
     | "A", "Y" -> state + 2 + 6 // rock paper
     | "A", "Z" -> state + 3 + 0 // rock scissors
     | "B", "Y" -> state + 2 + 3 // paper paper

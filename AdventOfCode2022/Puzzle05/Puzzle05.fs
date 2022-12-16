@@ -3,7 +3,6 @@ module AdventOfCode2022.Puzzle05.Puzzle05
 open System
 open System.IO
 open NUnit.Framework
-open AdventOfCode2022.Helpers
 
 type Move =
     { crates: int
@@ -146,16 +145,16 @@ let apply state (move: Move) =
         match stack with
         | i, s when i = move.origin -> pick move.crates buffer s
         | _, s -> s, buffer
-        
+
     let placeAtDestination (stacks: (int * char list) list, buffer: char list) =
         let placer (buffer: char list) (stack: int * char list) =
             match stack with
             | i, s when i = move.destination -> place s buffer
             | _, s -> s, buffer
-        
+
         stacks
         |> List.mapFold placer buffer
-    
+
     state
     |> List.indexed
     |> List.mapFold pickUpFromOrigin []
@@ -164,7 +163,7 @@ let apply state (move: Move) =
         | stacks, buffer -> stacks |> List.indexed, buffer
     |> placeAtDestination
     |> stack
-    
+
 [<Test>]
 let PartTwo () =
     Path.Combine("Puzzle05", "input.txt")

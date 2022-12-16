@@ -4,5 +4,6 @@
   &lt;TestAncestor&gt;
     &lt;TestId&gt;NUnit3x::AA96F77E-8252-409D-9EE7-D09ED00F0BDC::net7.0::AdventOfCode2022.Puzzle10.Puzzle10.PartOne&lt;/TestId&gt;
     &lt;TestId&gt;NUnit3x::AA96F77E-8252-409D-9EE7-D09ED00F0BDC::net7.0::AdventOfCode2022.Puzzle10.Puzzle10.PartTwo&lt;/TestId&gt;
+    &lt;TestId&gt;NUnit3x::AA96F77E-8252-409D-9EE7-D09ED00F0BDC::net7.0::AdventOfCode2022.Puzzle11.Puzzle11.PartOne&lt;/TestId&gt;
   &lt;/TestAncestor&gt;
 &lt;/SessionState&gt;</s:String></wpf:ResourceDictionary>

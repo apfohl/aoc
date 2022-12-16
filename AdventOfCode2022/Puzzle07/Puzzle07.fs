@@ -2,7 +2,6 @@ module AdventOfCode2022.Puzzle07.Puzzle07
 
 open System.IO
 open NUnit.Framework
-open AdventOfCode2022.Helpers
 
 type Node = { name: string; content: Content }
 
@@ -142,10 +141,10 @@ let PartOne () =
     |> atMost 70000000
     |> fun state ->
         match state with
-        | {AtMostState.result = result} -> result
+        | { AtMostState.result = result } -> result
     |> List.sum
     |> printfn "%A"
-    
+
 [<Test>]
 let PartTwo () =
     Path.Combine("Puzzle07", "input.txt")
@@ -161,5 +160,6 @@ let PartTwo () =
     |> atMost 70000000
     |> fun state ->
         match state with
-        | {AtMostState.absolute = absolute; AtMostState.result = result} -> absolute, result |> List.sortDescending
+        | { AtMostState.absolute = absolute
+            AtMostState.result = result } -> absolute, result |> List.sortDescending
     |> printfn "%A"

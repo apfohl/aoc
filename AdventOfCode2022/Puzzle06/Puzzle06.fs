@@ -2,7 +2,6 @@ module AdventOfCode2022.Puzzle06.Puzzle06
 
 open System.IO
 open NUnit.Framework
-open AdventOfCode2022.Helpers
 
 let getPosition windowSize =
     let findMarker state character =
@@ -22,7 +21,7 @@ let getPosition windowSize =
 [<Test>]
 let PartOne () =
     getPosition 4
-    
+
 [<Test>]
 let PartTwo () =
     getPosition 14

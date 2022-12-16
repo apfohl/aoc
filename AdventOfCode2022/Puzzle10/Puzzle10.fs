@@ -1,7 +1,6 @@
 module AdventOfCode2022.Puzzle10.Puzzle10
 
 open System.IO
-open AdventOfCode2022.Helpers
 open NUnit.Framework
 
 type Instruction =

@@ -2,13 +2,12 @@ module AdventOfCode2022.Puzzle04.Puzzle04
 
 open System.IO
 open NUnit.Framework
-open AdventOfCode2022.Helpers
 
 let splitArea (area: string) =
     match area.Split [| '-' |] with
     | [| left; right |] -> (int left), (int right)
     | _ -> failwith "Wrong Input"
-    
+
 let asAreas (area: string) =
     area.Split [| ',' |]
     |> List.ofArray
