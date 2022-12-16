@@ -23,3 +23,9 @@ let parseRegex regex input =
 let splitOn (c: char) (input: string) = input.Split c
 
 let isDigit c = System.Char.IsDigit c
+
+let loop n f s =
+    List.fold (fun state _ -> f state) s [ 0 .. n - 1 ]
+
+let change key mapper table =
+    Map.change key (Option.map mapper) table
