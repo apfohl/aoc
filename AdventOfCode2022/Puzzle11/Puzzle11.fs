@@ -6,8 +6,9 @@ open NUnit.Framework
 type Monkey =
     { items: int64 list
       operation: int64 -> int64
+      divisible: int64
       test: int64 -> int
-      count: int }
+      count: int64 }
 
 let parse lines : Map<int, Monkey> =
     let buildMonkey (lines: string array) =
@@ -32,10 +33,11 @@ let parse lines : Map<int, Monkey> =
                 | operator, value when value[0] |> isDigit -> (op operator) (int64 value)
                 | operator, _ -> fun old -> (op operator) old old
 
+        let int64 (matches: string array) = int64 matches[0]
+        let divisible = lines[3] |> parseRegex "(\d+)" |> int64
+
         let test =
             let int (matches: string array) = int matches[0]
-            let int64 (matches: string array) = int64 matches[0]
-            let divisible = lines[3] |> parseRegex "(\d+)" |> int64
             let targetTrue = lines[4] |> parseRegex "(\d+)" |> int
             let targetFalse = lines[5] |> parseRegex "(\d+)" |> int
 
@@ -46,6 +48,7 @@ let parse lines : Map<int, Monkey> =
         number,
         { items = items
           operation = operation
+          divisible = divisible
           test = test
           count = 0 }
 
@@ -57,21 +60,19 @@ let clear key monkeys =
         (fun monkey ->
             { monkey with
                 items = []
-                count = monkey.count + List.length monkey.items })
+                count = monkey.count + int64 (List.length monkey.items) })
         monkeys
 
 let receive monkeys key item =
-    change key (fun monkey -> { monkey with items = monkey.items @ [item] }) monkeys
+    change key (fun monkey -> { monkey with items = monkey.items @ [ item ] }) monkeys
 
-let monkey (monkeys: Map<int, Monkey>) key =
+let monkey f (monkeys: Map<int, Monkey>) key =
     let { items = items
           operation = operation
           test = test } =
         monkeys[key]
 
-    let divideBy divisor x = x / divisor
-
-    let changeWorryLevel = operation >> divideBy 3L
+    let changeWorryLevel = operation >> f
     let target = changeWorryLevel >> test
 
     let throwItem monkeys item =
@@ -79,15 +80,39 @@ let monkey (monkeys: Map<int, Monkey>) key =
 
     items |> List.fold throwItem monkeys |> clear key
 
-let round monkeys =
-    Seq.fold monkey monkeys (Map.keys monkeys)
+let divideBy divisor x = x / divisor
+
+let round f monkeys =
+    Seq.fold (monkey f) monkeys (Map.keys monkeys)
 
 [<Test>]
 let PartOne () =
+    let f = divideBy 3L
+
     Path.Combine("Puzzle11", "input.txt")
     |> lines id
     |> parse
-    |> loop 20 round
+    |> loop 20 (round f)
+    |> Map.values
+    |> Seq.map (fun monkey -> monkey.count)
+    |> Seq.sortDescending
+    |> Seq.take 2
+    |> Seq.reduce (*)
+    |> printfn "%A"
+
+[<Test>]
+let PartTwo () =
+    let divisibleProduct =
+        Map.values >> Seq.map (fun monkey -> monkey.divisible) >> Seq.fold (*) 1L
+
+    let modByDivisible monkeys input = input % (divisibleProduct monkeys)
+
+    let monkeys = Path.Combine("Puzzle11", "input.txt") |> lines id |> parse
+
+    let f = modByDivisible monkeys
+
+    monkeys
+    |> loop 10000 (round f)
     |> Map.values
     |> Seq.map (fun monkey -> monkey.count)
     |> Seq.sortDescending
