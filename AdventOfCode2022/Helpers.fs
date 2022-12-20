@@ -29,3 +29,11 @@ let loop n f s =
 
 let change key mapper table =
     Map.change key (Option.map mapper) table
+
+let notContains value = List.contains value >> not
+
+let flip2 f a b = f b a
+
+let isNotContainedIn list = (flip2 List.contains) list >> not
+
+let flip3 f a b c = f c b a
